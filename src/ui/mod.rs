@@ -1,6 +1,7 @@
 pub mod add_dialog;
 pub mod details;
 pub mod settings;
+pub mod titlebar;
 pub mod toolbar;
 pub mod torrent_list;
 

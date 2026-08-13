@@ -75,6 +75,9 @@ fn run_gui(ipc_rx: mpsc::Receiver<String>) -> eframe::Result<()> {
             .with_title("TorrentBox")
             .with_inner_size([1080.0, 680.0])
             .with_min_inner_size([760.0, 480.0])
+            // Убираем системную рамку/шапку — свою (в цвете темы) рисуем
+            // сами в src/ui/titlebar.rs. Работает на Windows и Linux.
+            .with_decorations(false)
             .with_icon(icon),
         persist_window: true,
         ..Default::default()

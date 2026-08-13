@@ -150,6 +150,14 @@ impl eframe::App for TorrentBoxApp {
         let snapshot = self.engine.snapshot();
         self.settings_state.listen_port = snapshot.listen_port;
 
+        // --- Собственная шапка окна (вместо системной) -----------------------
+        egui::TopBottomPanel::top("titlebar")
+            .frame(egui::Frame::new().fill(theme::ACCENT).inner_margin(egui::Margin::same(0)))
+            .exact_height(ui::titlebar::HEIGHT)
+            .show(ctx, |ui| {
+                ui::titlebar::show(ui);
+            });
+
         // --- Верхняя панель -------------------------------------------------
         egui::TopBottomPanel::top("toolbar")
             .frame(egui::Frame::new().fill(ctx.style().visuals.panel_fill).inner_margin(egui::Margin::symmetric(14, 10)))
@@ -267,6 +275,10 @@ impl eframe::App for TorrentBoxApp {
                 self.show_settings = open;
             }
         }
+
+        // Ручка изменения размера окна (см. src/ui/titlebar.rs) — рисуем
+        // поверх всего остального в самом конце кадра.
+        ui::titlebar::resize_grip(ctx);
     }
 }
 
