@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=TorrentBox
+GenericName=Torrent client
+Comment=Простой и быстрый torrent-клиент
+Exec=torrentbox %U
+Icon=torrentbox
+Terminal=false
+Categories=Network;FileTransfer;P2P;
+MimeType=application/x-bittorrent;x-scheme-handler/magnet;
+StartupWMClass=torrentbox

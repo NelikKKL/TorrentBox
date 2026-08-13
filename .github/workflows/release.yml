@@ -1,0 +1,104 @@
+name: Build TorrentBox
+
+# Собирает:
+#   • Windows  -> torrentbox-windows-x86_64.zip (содержит torrentbox.exe)
+#   • Ubuntu   -> torrentbox_<version>_amd64.deb (через cargo-deb)
+#
+# Запускается автоматически при пуше тега вида v0.1.0 (создаёт GitHub Release
+# с готовыми файлами) и вручную из вкладки Actions (workflow_dispatch),
+# а также при пуше в main/master — просто для проверки, что всё собирается
+# (артефакты в этом случае просто прикрепляются к запуску, без релиза).
+
+on:
+  push:
+    branches: [main, master]
+    tags: ["v*.*.*"]
+  pull_request:
+  workflow_dispatch: {}
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build-windows:
+    name: Windows (x86_64)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Установка Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Кэш cargo
+        uses: Swatinem/rust-cache@v2
+
+      - name: Сборка (release)
+        run: cargo build --release
+
+      - name: Упаковка
+        shell: bash
+        run: |
+          mkdir -p dist
+          cp target/release/torrentbox.exe dist/
+          cp README.md dist/ || true
+          cd dist && 7z a ../torrentbox-windows-x86_64.zip . 
+
+      - name: Публикация артефакта сборки
+        uses: actions/upload-artifact@v4
+        with:
+          name: torrentbox-windows-x86_64
+          path: torrentbox-windows-x86_64.zip
+
+  build-linux-deb:
+    name: Ubuntu/Debian (.deb, x86_64)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Установка Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Кэш cargo
+        uses: Swatinem/rust-cache@v2
+
+      - name: Системные зависимости для сборки GUI (winit/glow/rfd)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libgtk-3-dev \
+            libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev \
+            libxkbcommon-dev libssl-dev pkg-config \
+            libglib2.0-dev
+
+      - name: Установка cargo-deb
+        run: cargo install cargo-deb --locked
+
+      - name: Сборка .deb
+        run: cargo deb
+
+      - name: Найти собранный .deb
+        id: find_deb
+        run: echo "path=$(ls target/debian/*.deb | head -n1)" >> "$GITHUB_OUTPUT"
+
+      - name: Публикация артефакта сборки
+        uses: actions/upload-artifact@v4
+        with:
+          name: torrentbox-ubuntu-amd64-deb
+          path: ${{ steps.find_deb.outputs.path }}
+
+  release:
+    name: Публикация GitHub Release
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [build-windows, build-linux-deb]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Создать релиз с файлами
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            artifacts/torrentbox-windows-x86_64/torrentbox-windows-x86_64.zip
+            artifacts/torrentbox-ubuntu-amd64-deb/*.deb

@@ -1,0 +1,80 @@
+[package]
+name = "torrentbox"
+version = "0.1.0"
+edition = "2021"
+description = "TorrentBox — лёгкий torrent-клиент для ПК"
+authors = ["TorrentBox"]
+license = "MIT"
+default-run = "torrentbox"
+
+[[bin]]
+name = "torrentbox"
+path = "src/main.rs"
+
+[dependencies]
+# BitTorrent-движок (DHT, PeX, uTP, магнет-ссылки, докачка) —
+# аналог libtorrent4j, который использует Android-версия LibreTorrent.
+librqbit = "8"
+
+# GUI
+eframe = { version = "0.32", default-features = false, features = ["glow", "default_fonts", "persistence"] }
+egui = "0.32"
+egui_extras = { version = "0.32", features = ["image"] }
+image = { version = "0.25", default-features = false, features = ["png"] }
+
+# Асинхронность
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "time", "fs"] }
+
+# Диалоги выбора файлов/папок (нативные, кроссплатформенные)
+rfd = "0.15"
+
+# Утилиты
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+anyhow = "1"
+directories = "5"
+open = "5"
+# Декодирование file:// URI (приходят от ОС при открытии .torrent файла)
+urlencoding = "2"
+
+[target.'cfg(windows)'.dependencies]
+# Регистрация .torrent / magnet: в реестре Windows (HKCU, без прав администратора)
+winreg = "0.56"
+
+[target.'cfg(windows)'.build-dependencies]
+winresource = "0.1"
+
+[profile.release]
+opt-level = 3
+lto = true
+strip = true
+panic = "unwind"
+
+# ---------------------------------------------------------------------------
+# Настройки для cargo-deb (сборка .deb пакета под Ubuntu/Debian)
+# Установка: cargo install cargo-deb
+# Сборка:    cargo deb
+# ---------------------------------------------------------------------------
+[package.metadata.deb]
+name = "torrentbox"
+maintainer = "TorrentBox Project"
+copyright = "2026, TorrentBox"
+license-file = ["LICENSE", "0"]
+extended-description = """\
+TorrentBox — простой и быстрый torrent-клиент для Linux с поддержкой \
+магнет-ссылок, DHT, докачки и выбора файлов для загрузки."""
+depends = "$auto"
+section = "net"
+priority = "optional"
+assets = [
+    ["target/release/torrentbox", "usr/bin/", "755"],
+    ["packaging/linux/torrentbox.desktop", "usr/share/applications/", "644"],
+    ["packaging/linux/icon-16.png", "usr/share/icons/hicolor/16x16/apps/torrentbox.png", "644"],
+    ["packaging/linux/icon-22.png", "usr/share/icons/hicolor/22x22/apps/torrentbox.png", "644"],
+    ["packaging/linux/icon-24.png", "usr/share/icons/hicolor/24x24/apps/torrentbox.png", "644"],
+    ["packaging/linux/icon-32.png", "usr/share/icons/hicolor/32x32/apps/torrentbox.png", "644"],
+    ["packaging/linux/icon-48.png", "usr/share/icons/hicolor/48x48/apps/torrentbox.png", "644"],
+    ["packaging/linux/icon-64.png", "usr/share/icons/hicolor/64x64/apps/torrentbox.png", "644"],
+    ["packaging/linux/icon-128.png", "usr/share/icons/hicolor/128x128/apps/torrentbox.png", "644"],
+    ["packaging/linux/icon-256.png", "usr/share/icons/hicolor/256x256/apps/torrentbox.png", "644"],
+]
