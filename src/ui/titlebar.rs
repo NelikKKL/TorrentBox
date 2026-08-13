@@ -22,10 +22,10 @@ pub fn show(ui: &mut egui::Ui) {
     let drag_response = ui.interact(rect, Id::new("titlebar_drag_area"), Sense::click_and_drag());
     if drag_response.double_clicked() {
         let is_maximized = ui.input(|i| i.viewport().maximized.unwrap_or(false));
-        ui.send_viewport_cmd(egui::ViewportCommand::Maximized(!is_maximized));
+        ui.ctx().send_viewport_cmd(egui::ViewportCommand::Maximized(!is_maximized));
     }
     if drag_response.drag_started_by(PointerButton::Primary) {
-        ui.send_viewport_cmd(egui::ViewportCommand::StartDrag);
+        ui.ctx().send_viewport_cmd(egui::ViewportCommand::StartDrag);
     }
 
     // ...а поверх неё рисуются иконка/название и кнопки — они добавляются
@@ -62,19 +62,19 @@ fn window_buttons(ui: &mut egui::Ui) {
 
     let close = ui.add_sized(btn_size, egui::Button::new(RichText::new("✕").size(14.0).color(text_color)));
     if close.on_hover_text("Закрыть").clicked() {
-        ui.send_viewport_cmd(egui::ViewportCommand::Close);
+        ui.ctx().send_viewport_cmd(egui::ViewportCommand::Close);
     }
 
     let is_maximized = ui.input(|i| i.viewport().maximized.unwrap_or(false));
     let (icon, tip) = if is_maximized { ("🗗", "Восстановить") } else { ("🗖", "Развернуть") };
     let maximize = ui.add_sized(btn_size, egui::Button::new(RichText::new(icon).size(13.0).color(text_color)));
     if maximize.on_hover_text(tip).clicked() {
-        ui.send_viewport_cmd(egui::ViewportCommand::Maximized(!is_maximized));
+        ui.ctx().send_viewport_cmd(egui::ViewportCommand::Maximized(!is_maximized));
     }
 
     let minimize = ui.add_sized(btn_size, egui::Button::new(RichText::new("🗕").size(13.0).color(text_color)));
     if minimize.on_hover_text("Свернуть").clicked() {
-        ui.send_viewport_cmd(egui::ViewportCommand::Minimized(true));
+        ui.ctx().send_viewport_cmd(egui::ViewportCommand::Minimized(true));
     }
 }
 
@@ -99,7 +99,7 @@ pub fn resize_grip(ctx: &egui::Context) {
                 ui.ctx().set_cursor_icon(CursorIcon::ResizeNwSe);
             }
             if response.drag_started_by(PointerButton::Primary) {
-                ui.send_viewport_cmd(egui::ViewportCommand::BeginResize(ResizeDirection::SouthEast));
+                ui.ctx().send_viewport_cmd(egui::ViewportCommand::BeginResize(ResizeDirection::SouthEast));
             }
             ui.painter().text(
                 rect.center(),

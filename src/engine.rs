@@ -207,7 +207,7 @@ async fn run_engine(
             iter.map(|(id, t)| {
                 let stats = t.stats();
                 let name = t.name().unwrap_or_else(|| format!("Торрент #{id}"));
-                let info_hash = t.info_hash().to_string();
+                let info_hash = t.info_hash().as_string();
                 let is_paused = t.is_paused();
                 let state_dbg = format!("{:?}", stats.state);
 
