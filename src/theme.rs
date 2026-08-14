@@ -50,13 +50,13 @@ pub fn apply(ctx: &egui::Context, mode: ThemeMode) {
     visuals.faint_bg_color = faint_bg;
     visuals.extreme_bg_color = extreme_bg;
     visuals.selection.bg_fill = ACCENT.linear_multiply(0.55);
-    visuals.selection.stroke = Stroke::new(1.0, ACCENT);
+    visuals.selection.stroke = Stroke::new(1.0_f32, ACCENT);
     visuals.hyperlink_color = ACCENT_DARK;
 
     visuals.widgets.hovered.weak_bg_fill = ACCENT_LIGHT.linear_multiply(0.35);
-    visuals.widgets.hovered.bg_stroke = Stroke::new(1.0, ACCENT_LIGHT);
+    visuals.widgets.hovered.bg_stroke = Stroke::new(1.0_f32, ACCENT_LIGHT);
     visuals.widgets.active.weak_bg_fill = ACCENT;
-    visuals.widgets.active.bg_stroke = Stroke::new(1.0, ACCENT_DARK);
+    visuals.widgets.active.bg_stroke = Stroke::new(1.0_f32, ACCENT_DARK);
     visuals.widgets.inactive.weak_bg_fill = faint_bg;
 
     for w in [

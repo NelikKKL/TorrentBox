@@ -17,7 +17,7 @@ path = "src/main.rs"
 librqbit = "8"
 
 # GUI
-eframe = { version = "0.32", default-features = false, features = ["glow", "default_fonts", "persistence", "x11", "wayland"] }
+eframe = { version = "0.32", default-features = false, features = ["glow", "default_fonts", "persistence", "wayland", "x11"] }
 egui = "0.32"
 egui_extras = { version = "0.32", features = ["image"] }
 image = { version = "0.25", default-features = false, features = ["png"] }

@@ -69,7 +69,7 @@ fn show_row(ui: &mut egui::Ui, row: &TorrentRow, is_selected: bool) -> Option<Li
             ui.visuals().panel_fill
         })
         .stroke(if is_selected {
-            Stroke::new(1.5, theme::ACCENT)
+            Stroke::new(1.5_f32, theme::ACCENT)
         } else {
             Stroke::NONE
         })
