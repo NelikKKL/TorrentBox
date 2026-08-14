@@ -78,6 +78,21 @@ impl Engine {
     }
 }
 
+/// Системная папка для служебных файлов приложения — не путать с папкой
+/// загрузок. На Windows это `%APPDATA%\TorrentBox`, на Linux —
+/// `~/.local/share/torrentbox`, на macOS — `~/Library/Application
+/// Support/TorrentBox`. Здесь хранится только состояние сессии (список
+/// торрентов и прогресс докачки), сами скачанные файлы сюда не попадают.
+fn app_state_dir() -> PathBuf {
+    if let Some(proj) = directories::ProjectDirs::from("", "", "TorrentBox") {
+        proj.data_dir().to_path_buf()
+    } else {
+        // Крайний случай: не удалось определить домашнюю папку пользователя.
+        // Используем локальную относительную папку, лишь бы не падать совсем.
+        PathBuf::from(".torrentbox-state")
+    }
+}
+
 async fn run_engine(
     default_download_dir: PathBuf,
     cmd_rx: std_mpsc::Receiver<Command>,
@@ -87,7 +102,22 @@ async fn run_engine(
 
     // Папка для файла состояния сессии (список торрентов переживает перезапуск),
     // как автодокачка/автозагрузка в LibreTorrent.
-    let persistence_dir = default_download_dir.join(".torrentbox-state");
+    //
+    // ВАЖНО: раньше эта папка создавалась внутри папки загрузок
+    // (default_download_dir.join(".torrentbox-state")). Это было плохо по
+    // двум причинам:
+    //  1) в папке загрузок появлялась лишняя служебная папка, не имеющая
+    //     отношения к самим скачанным файлам;
+    //  2) если папка загрузок — это Windows-папка "Загрузки", перенаправленная
+    //     в OneDrive (частая ситуация по умолчанию), то сразу после создания
+    //     новой подпапки запись в неё может упасть с "os error 3: Системе не
+    //     удается найти указанный путь" — OneDrive не всегда успевает
+    //     материализовать папку до того, как мы пытаемся в неё писать.
+    // Поэтому храним состояние сессии в системной папке данных приложения
+    // (например, %APPDATA%\TorrentBox на Windows, ~/.local/share/torrentbox
+    // на Linux) — она не связана с папкой загрузок и не синхронизируется
+    // облачными клиентами.
+    let persistence_dir = app_state_dir().join("session");
     let _ = std::fs::create_dir_all(&persistence_dir);
 
     let opts = SessionOptions {
