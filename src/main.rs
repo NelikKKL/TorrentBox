@@ -80,12 +80,6 @@ fn run_gui(ipc_rx: mpsc::Receiver<String>) -> eframe::Result<()> {
             .with_decorations(false)
             .with_icon(icon),
         persist_window: true,
-        // Без этого eframe пытается сам подстроиться под системную
-        // светлую/тёмную тему и на каждом кадре переопределяет наши
-        // цвета — тогда переключатель темы в Настройках визуально не
-        // будет работать. Управляем темой полностью сами (src/theme.rs).
-        follow_system_theme: false,
-        default_theme: eframe::Theme::Light,
         ..Default::default()
     };
 
