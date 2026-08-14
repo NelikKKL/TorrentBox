@@ -1,17 +1,17 @@
 //! Фирменная тема TorrentBox.
 //!
-//! Основной акцентный цвет — #A9713E (тёплый "картонно-коричневый",
-//! в тон иконке приложения). Тема собрана в двух вариантах — светлом
-//! и тёмном, как в оригинальном LibreTorrent.
+//! Основной акцентный цвет — #483524 (тёмный "шоколадно-коричневый").
+//! Тема собрана в двух вариантах — светлом и тёмном, как в оригинальном
+//! LibreTorrent.
 
 use eframe::egui::{self, Color32, CornerRadius, Stroke};
 
-/// Основной акцентный цвет бренда — #A9713E.
-pub const ACCENT: Color32 = Color32::from_rgb(0xA9, 0x71, 0x3E);
+/// Основной акцентный цвет бренда — #483524.
+pub const ACCENT: Color32 = Color32::from_rgb(0x48, 0x35, 0x24);
 /// Более светлый оттенок акцента (наведение / активные элементы).
-pub const ACCENT_LIGHT: Color32 = Color32::from_rgb(0xC2, 0x92, 0x63);
+pub const ACCENT_LIGHT: Color32 = Color32::from_rgb(0x76, 0x68, 0x5B);
 /// Более тёмный оттенок акцента (нажатие).
-pub const ACCENT_DARK: Color32 = Color32::from_rgb(0x8A, 0x59, 0x2C);
+pub const ACCENT_DARK: Color32 = Color32::from_rgb(0x38, 0x29, 0x1C);
 
 pub const SUCCESS: Color32 = Color32::from_rgb(0x4C, 0xA6, 0x5B); // раздаётся / завершено
 pub const WARNING: Color32 = Color32::from_rgb(0xD9, 0xA5, 0x30); // проверка / ожидание
@@ -24,6 +24,20 @@ pub enum ThemeMode {
 }
 
 pub fn apply(ctx: &egui::Context, mode: ThemeMode) {
+    // Явно фиксируем тему (Light/Dark) в самом egui. Начиная с egui 0.31
+    // у контекста появилось собственное понятие "предпочтения темы"
+    // (ThemePreference::System/Light/Dark), которое по умолчанию стоит
+    // в System и следует за тёмной/светлой темой ОС. Если его не задать
+    // явно через ctx.set_theme(...), то ctx.set_visuals(...) ниже будет
+    // писать цвета не в тот "слот" темы, который реально показывается —
+    // из-за этого переключатель в Настройках визуально не работает
+    // (особенно у пользователей с тёмной темой ОС по умолчанию).
+    let egui_theme = match mode {
+        ThemeMode::Light => egui::Theme::Light,
+        ThemeMode::Dark => egui::Theme::Dark,
+    };
+    ctx.set_theme(egui_theme);
+
     let mut visuals = match mode {
         ThemeMode::Light => egui::Visuals::light(),
         ThemeMode::Dark => egui::Visuals::dark(),
@@ -50,13 +64,13 @@ pub fn apply(ctx: &egui::Context, mode: ThemeMode) {
     visuals.faint_bg_color = faint_bg;
     visuals.extreme_bg_color = extreme_bg;
     visuals.selection.bg_fill = ACCENT.linear_multiply(0.55);
-    visuals.selection.stroke = Stroke::new(1.0_f32, ACCENT);
+    visuals.selection.stroke = Stroke::new(1.0, ACCENT);
     visuals.hyperlink_color = ACCENT_DARK;
 
     visuals.widgets.hovered.weak_bg_fill = ACCENT_LIGHT.linear_multiply(0.35);
-    visuals.widgets.hovered.bg_stroke = Stroke::new(1.0_f32, ACCENT_LIGHT);
+    visuals.widgets.hovered.bg_stroke = Stroke::new(1.0, ACCENT_LIGHT);
     visuals.widgets.active.weak_bg_fill = ACCENT;
-    visuals.widgets.active.bg_stroke = Stroke::new(1.0_f32, ACCENT_DARK);
+    visuals.widgets.active.bg_stroke = Stroke::new(1.0, ACCENT_DARK);
     visuals.widgets.inactive.weak_bg_fill = faint_bg;
 
     for w in [

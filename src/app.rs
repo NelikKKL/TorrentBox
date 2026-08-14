@@ -33,6 +33,7 @@ pub struct TorrentBoxApp {
     settings_state: SettingsState,
 
     download_dir: PathBuf,
+    theme_applied: bool,
     ipc_rx: mpsc::Receiver<String>,
 }
 
@@ -64,6 +65,7 @@ impl TorrentBoxApp {
                 register_message: None,
             },
             download_dir: prefs.download_dir,
+            theme_applied: false,
             ipc_rx,
         }
     }
@@ -124,11 +126,10 @@ impl eframe::App for TorrentBoxApp {
     }
 
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
-        // Тему применяем на каждом кадре: eframe/ОС может сама пытаться
-        // навязать системную светлую/тёмную схему, и если применять нашу
-        // только один раз при старте, это переопределение "перебивает" её
-        // на следующих кадрах. Сам вызов дешёвый, лишней нагрузки не даёт.
-        theme::apply(ctx, self.theme_mode);
+        if !self.theme_applied {
+            theme::apply(ctx, self.theme_mode);
+            self.theme_applied = true;
+        }
 
         // Магнет-ссылки/.torrent файлы, открытые через ОС (или присланные
         // повторным запуском TorrentBox, см. main.rs) — добавляем их сразу.
@@ -259,7 +260,11 @@ impl eframe::App for TorrentBoxApp {
                 match result {
                     SettingsResult::Save { download_dir, dark_mode } => {
                         self.download_dir = download_dir;
-                        self.theme_mode = if dark_mode { ThemeMode::Dark } else { ThemeMode::Light };
+                        let new_mode = if dark_mode { ThemeMode::Dark } else { ThemeMode::Light };
+                        if new_mode != self.theme_mode {
+                            self.theme_mode = new_mode;
+                            theme::apply(ctx, self.theme_mode);
+                        }
                         self.show_settings = false;
                     }
                     SettingsResult::Close => {
