@@ -14,6 +14,9 @@ use crate::theme;
 
 pub const HEIGHT: f32 = 38.0;
 
+/// Ширина одной кнопки шапки (закрыть/развернуть/свернуть) — как в Edit.
+const BUTTON_WIDTH: f32 = 44.0;
+
 /// Рисует содержимое шапки. Вызывать внутри `TopBottomPanel::top(...).show(ctx, |ui| ...)`.
 pub fn show(ui: &mut egui::Ui) {
     let rect = ui.max_rect();
@@ -42,9 +45,7 @@ pub fn show(ui: &mut egui::Ui) {
         );
 
         ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-            ui.spacing_mut().item_spacing.x = 2.0;
-            ui.visuals_mut().button_frame = false;
-            ui.add_space(6.0);
+            ui.spacing_mut().item_spacing.x = 0.0;
             window_buttons(ui);
         });
     });
@@ -57,25 +58,48 @@ pub fn show(ui: &mut egui::Ui) {
 }
 
 fn window_buttons(ui: &mut egui::Ui) {
-    let btn_size = vec2(30.0, HEIGHT);
-    let text_color = Color32::from_rgba_unmultiplied(255, 255, 255, 230);
-
-    let close = ui.add_sized(btn_size, egui::Button::new(RichText::new("✕").size(14.0).color(text_color)));
+    // Порядок добавления — справа налево (Layout::right_to_left), поэтому
+    // "✕" добавляется первым и оказывается у самого правого края шапки,
+    // как принято в Windows/Edit.
+    let close = window_button(ui, "✕", theme::DANGER);
     if close.on_hover_text("Закрыть").clicked() {
         ui.ctx().send_viewport_cmd(egui::ViewportCommand::Close);
     }
 
     let is_maximized = ui.input(|i| i.viewport().maximized.unwrap_or(false));
-    let (icon, tip) = if is_maximized { ("🗗", "Восстановить") } else { ("🗖", "Развернуть") };
-    let maximize = ui.add_sized(btn_size, egui::Button::new(RichText::new(icon).size(13.0).color(text_color)));
+    let (icon, tip) = if is_maximized { ("❐", "Восстановить") } else { ("☐", "Развернуть") };
+    let maximize = window_button(ui, icon, theme::ACCENT_DARK);
     if maximize.on_hover_text(tip).clicked() {
         ui.ctx().send_viewport_cmd(egui::ViewportCommand::Maximized(!is_maximized));
     }
 
-    let minimize = ui.add_sized(btn_size, egui::Button::new(RichText::new("🗕").size(13.0).color(text_color)));
+    let minimize = window_button(ui, "─", theme::ACCENT_DARK);
     if minimize.on_hover_text("Свернуть").clicked() {
         ui.ctx().send_viewport_cmd(egui::ViewportCommand::Minimized(true));
     }
+}
+
+/// Плоская кнопка шапки окна — без рамки/скруглений обычного `egui::Button`:
+/// просто область на всю высоту шапки, закрашиваемая цветом `hover_bg` при
+/// наведении, и символ поверх. Так выглядят кнопки в шапке Edit.
+fn window_button(ui: &mut egui::Ui, symbol: &str, hover_bg: Color32) -> egui::Response {
+    let size = vec2(BUTTON_WIDTH, HEIGHT);
+    let (rect, response) = ui.allocate_exact_size(size, Sense::click());
+
+    if response.hovered() {
+        ui.painter().rect_filled(rect, 0.0, hover_bg);
+    }
+
+    let text_color = Color32::from_rgba_unmultiplied(255, 255, 255, 230);
+    ui.painter().text(
+        rect.center(),
+        Align2::CENTER_CENTER,
+        symbol,
+        FontId::proportional(14.0),
+        text_color,
+    );
+
+    response
 }
 
 /// Небольшая "ручка" изменения размера в правом нижнem углу окна — нужна,
@@ -110,3 +134,4 @@ pub fn resize_grip(ctx: &egui::Context) {
             );
         });
 }
+
